@@ -4,9 +4,7 @@ from src.main import Product, Category
 
 @pytest.fixture
 def product_samsung():
-    return Product(
-        "Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5
-    )
+    return Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
 
 
 @pytest.fixture
@@ -40,7 +38,8 @@ def test_product_initialization(product_samsung):
 def smartphone_category(product_samsung, product_iphone):
     return Category(
         "Смартфоны",
-        "Смартфоны, как средство не только коммуникации, но и получения дополнительных функций для удобства жизни",
+        "Смартфоны, как средство не только коммуникации,"
+        " но и получения дополнительных функций для удобства жизни",
         [product_samsung, product_iphone],
     )
 
@@ -73,3 +72,91 @@ def test_category_count(smartphone_category, tv_category):
 def test_product_count(smartphone_category, tv_category):
     """Тест подсчета общего количества продуктов"""
     assert Category.product_count == 3
+
+
+def test_product_price_setter_valid(product_samsung):
+    """Тест корректного изменения цены через сеттер"""
+    product_samsung.price = 190000.0
+    assert product_samsung.price == 190000.0
+
+
+def test_product_price_setter_negative(product_samsung, capsys):
+    """Тест реакции на отрицательную цену"""
+    original_price = product_samsung.price
+    product_samsung.price = -100
+    captured = capsys.readouterr()
+    assert "Цена не должна быть нулевая или отрицательная" in captured.out
+    assert product_samsung.price == original_price  # Цена не изменилась
+
+
+def test_product_price_setter_zero(product_samsung, capsys):
+    """Тест реакции на нулевую цену"""
+    original_price = product_samsung.price
+    product_samsung.price = 0
+    captured = capsys.readouterr()
+    assert "Цена не должна быть нулевая или отрицательная" in captured.out
+    assert product_samsung.price == original_price  # Цена не изменилась
+
+
+def test_product_private_price_attribute(product_samsung):
+    """Тест недоступности приватного атрибута цены"""
+    with pytest.raises(AttributeError):
+        product_samsung.__price
+
+
+def test_product_info_format(product_samsung):
+    """Тест формата вывода информации о продукте"""
+    assert product_samsung.product_info == (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт."
+    )
+
+
+def test_category_products_info(smartphone_category):
+    """Тест вывода информации о продуктах категории"""
+    expected_output = (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт.\n"
+        "iPhone 15, 210000.0 руб. Остаток: 8 шт."
+    )
+    assert smartphone_category.products_info == expected_output
+
+
+def test_category_add_product(smartphone_category, product_xiaomi):
+    """Тест добавления продукта в категорию"""
+    initial_count = len(smartphone_category.products)
+    smartphone_category.add_product(product_xiaomi)
+    assert len(smartphone_category.products) == initial_count + 1
+    assert product_xiaomi in smartphone_category.products
+    assert Category.product_count == 3  # Учитываем продукты из других фикстур
+
+
+def test_category_products_copy(smartphone_category):
+    """Тест, что products возвращает копию списка"""
+    products_copy = smartphone_category.products
+    products_copy.append("invalid product")
+    assert "invalid product" not in smartphone_category.products
+
+
+class TestProduct:
+    @pytest.fixture
+    def sample_products(self):
+        product1 = Product("Телефон", "Смартфон", 50000.0, 10)
+        product2 = Product("Ноутбук", "Игровой", 100000.0, 5)
+        zero_product = Product("Аксессуар", "Чехол", 1000.0, 0)
+        return product1, product2, zero_product
+
+    def test_str_representation(self, sample_products):
+        """Тест строкового представления продукта"""
+        product1, product2, _ = sample_products
+        assert str(product1) == "Телефон, 50000.0 руб. Остаток: 10 шт."
+        assert str(product2) == "Ноутбук, 100000.0 руб. Остаток: 5 шт."
+
+    def test_addition_of_products(self, sample_products):
+        """Тест сложения продуктов"""
+        product1, product2, _ = sample_products
+        assert product1 + product2 == 50000.0 * 10 + 100000.0 * 5
+        assert product2 + product1 == product1 + product2  # коммутативность
+
+    def test_addition_with_zero_quantity(self, sample_products):
+        """Тест сложения с нулевым количеством"""
+        product1, _, zero_product = sample_products
+        assert product1 + zero_product == 50000.0 * 10 + 1000.0 * 0
