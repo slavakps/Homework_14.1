@@ -4,8 +4,7 @@ from src.main import Product, Category
 
 @pytest.fixture
 def product_samsung():
-    return Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера",
-                   180000.0, 5)
+    return Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
 
 
 @pytest.fixture
@@ -135,3 +134,29 @@ def test_category_products_copy(smartphone_category):
     products_copy = smartphone_category.products
     products_copy.append("invalid product")
     assert "invalid product" not in smartphone_category.products
+
+
+class TestProduct:
+    @pytest.fixture
+    def sample_products(self):
+        product1 = Product("Телефон", "Смартфон", 50000.0, 10)
+        product2 = Product("Ноутбук", "Игровой", 100000.0, 5)
+        zero_product = Product("Аксессуар", "Чехол", 1000.0, 0)
+        return product1, product2, zero_product
+
+    def test_str_representation(self, sample_products):
+        """Тест строкового представления продукта"""
+        product1, product2, _ = sample_products
+        assert str(product1) == "Телефон, 50000.0 руб. Остаток: 10 шт."
+        assert str(product2) == "Ноутбук, 100000.0 руб. Остаток: 5 шт."
+
+    def test_addition_of_products(self, sample_products):
+        """Тест сложения продуктов"""
+        product1, product2, _ = sample_products
+        assert product1 + product2 == 50000.0 * 10 + 100000.0 * 5
+        assert product2 + product1 == product1 + product2  # коммутативность
+
+    def test_addition_with_zero_quantity(self, sample_products):
+        """Тест сложения с нулевым количеством"""
+        product1, _, zero_product = sample_products
+        assert product1 + zero_product == 50000.0 * 10 + 1000.0 * 0
