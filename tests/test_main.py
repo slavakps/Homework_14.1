@@ -1,5 +1,5 @@
 import pytest
-from src.main import Product, Category
+from src.main import Product, Category, LawnGrass, Smartphone
 
 
 @pytest.fixture
@@ -160,3 +160,49 @@ class TestProduct:
         """Тест сложения с нулевым количеством"""
         product1, _, zero_product = sample_products
         assert product1 + zero_product == 50000.0 * 10 + 1000.0 * 0
+
+
+@pytest.fixture
+def smartphone():
+    return Smartphone(
+        "Samsung Galaxy S23 Ultra",
+        "256GB, Серый цвет, 200MP камера",
+        180000.0,
+        5,
+        95.5,
+        "S23 Ultra",
+        256,
+        "Серый"
+    )
+
+def test_create_smartphone(smartphone):
+    assert smartphone.name == "Samsung Galaxy S23 Ultra"
+    assert smartphone.description == "256GB, Серый цвет, 200MP камера"
+    assert smartphone.price == 180000.0
+    assert smartphone.quantity == 5
+    assert smartphone.efficiency == 95.5
+    assert smartphone.model == "S23 Ultra"
+    assert smartphone.memory == 256
+    assert smartphone.color == "Серый"
+
+@pytest.fixture
+def lawngrass():
+    return LawnGrass(
+        "Газонная трава",
+        "Элитная трава для газона",
+        500.0,
+        20,
+        "Россия",
+        "7 дней",
+        "Зеленый"
+    )
+
+
+def test_create_lawngrass(lawngrass):
+    assert lawngrass.name == "Газонная трава"
+    assert lawngrass.description == "Элитная трава для газона"
+    assert lawngrass.price == 500.0
+    assert lawngrass.quantity == 20
+    assert lawngrass.country == "Россия"
+    assert lawngrass.germination_period == "7 дней"
+    assert lawngrass.color == "Зеленый"
