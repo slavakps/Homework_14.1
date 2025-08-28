@@ -206,3 +206,102 @@ def test_create_lawngrass(lawngrass):
     assert lawngrass.country == "Россия"
     assert lawngrass.germination_period == "7 дней"
     assert lawngrass.color == "Зеленый"
+
+# Тесты для базового класса Product
+class TestProduct:
+    def test_initialization(self, product_samsung):
+        assert product_samsung.name == "Samsung Galaxy S23 Ultra"
+        assert product_samsung.description == "256GB, Серый цвет, 200MP камера"
+        assert product_samsung.price == 180000.0
+        assert product_samsung.quantity == 5
+
+    def test_price_setter_valid(self, product_samsung):
+        product_samsung.price = 190000.0
+        assert product_samsung.price == 190000.0
+
+    def test_price_setter_invalid(self, product_samsung, capsys):
+        original_price = product_samsung.price
+        product_samsung.price = -100
+        captured = capsys.readouterr()
+        assert "Цена не должна быть нулевая или отрицательная" in captured.out
+        assert product_samsung.price == original_price
+
+    def test_product_info(self, product_samsung):
+        assert product_samsung.product_info == "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт."
+
+    def test_str_representation(self, product_samsung):
+        assert str(product_samsung) == "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт."
+
+    def test_addition(self, product_samsung, product_iphone):
+        total = product_samsung + product_iphone
+        assert total == 180000.0*5 + 210000.0*8
+
+    def test_invalid_addition(self, product_samsung, smartphone):
+        with pytest.raises(TypeError, match="Нельзя складывать товары разных классов"):
+            product_samsung + smartphone
+
+# Тесты для класса Category
+class TestCategory:
+    def test_initialization(self, smartphone_category):
+        assert smartphone_category.name == "Смартфоны"
+        assert len(smartphone_category.products) == 2
+
+    def test_counters(self, smartphone_category, tv_category):
+        assert Category.category_count == 2
+        assert Category.product_count == 3
+
+    def test_add_product(self, smartphone_category, product_xiaomi):
+        initial_count = len(smartphone_category.products)
+        smartphone_category.add_product(product_xiaomi)
+        assert len(smartphone_category.products) == initial_count + 1
+        assert Category.product_count == 4
+
+    def test_products_info(self, smartphone_category):
+        info = smartphone_category.products_info
+        assert "Samsung Galaxy S23 Ultra" in info
+        assert "iPhone 15" in info
+
+    def test_total_quantity(self, smartphone_category):
+        assert smartphone_category.total_quantity == 13  # 5 + 8
+
+    def test_products_copy(self, smartphone_category):
+        products_copy = smartphone_category.products
+        products_copy.append("invalid")
+        assert "invalid" not in smartphone_category.products
+
+# Тесты для класса Smartphone
+class TestSmartphone:
+    def test_initialization(self, smartphone):
+        assert smartphone.name == "Samsung Galaxy S23 Ultra"
+        assert smartphone.efficiency == 95.5
+        assert smartphone.model == "S23 Ultra"
+        assert smartphone.memory == 256
+        assert smartphone.color == "Серый"
+
+    def test_inheritance(self, smartphone):
+        assert isinstance(smartphone, Product)
+        assert smartphone.price == 180000.0
+        assert smartphone.quantity == 5
+
+    def test_addition(self, smartphone):
+        other = Smartphone("iPhone", "Pro", 200000, 3, "A15", "15", 512, "Black")
+        total = smartphone + other
+        assert total == 180000.0*5 + 200000*3
+
+# Тесты для класса LawnGrass
+class TestLawnGrass:
+    def test_initialization(self, lawngrass):
+        assert lawngrass.name == "Газонная трава"
+        assert lawngrass.country == "Россия"
+        assert lawngrass.germination_period == "7 дней"
+        assert lawngrass.color == "Зеленый"
+
+    def test_inheritance(self, lawngrass):
+        assert isinstance(lawngrass, Product)
+        assert lawngrass.price == 500.0
+        assert lawngrass.quantity == 20
+
+    def test_addition(self, lawngrass):
+        other = LawnGrass("Трава", "Обычная", 300, 30, "Беларусь", "10 дней", "Зеленый")
+        total = lawngrass + other
+        assert total == 500.0*20 + 300*30
